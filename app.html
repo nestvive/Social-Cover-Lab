@@ -109,9 +109,9 @@ header .badge { font-size:.75rem; color:var(--sub); background:rgba(255,255,255,
     <div class="examples">
       <h4>💡 或使用示例图片快速体验</h4>
       <div class="example-grid" id="exampleGrid">
-        <div class="example-item" data-example="1">👩‍💼</div>
-        <div class="example-item" data-example="2">🧑‍🍳</div>
-        <div class="example-item" data-example="3">🏃</div>
+        <div class="example-item" data-example="1" style="background:url(assets/demo_original.jpg) center/cover;"></div>
+        <div class="example-item" data-example="2" style="background:url(assets/demo_xhs_handdrawn.jpg) center/cover;"></div>
+        <div class="example-item" data-example="3" style="background:url(assets/demo_xhs_sticker.jpg) center/cover;"></div>
       </div>
     </div>
 
@@ -241,9 +241,9 @@ function generateSampleImage(label, bgColor) {
 }
 
 const sampleImages = {
-  '1': generateSampleImage('职场女性', '#7c3aed'),
-  '2': generateSampleImage('美食博主', '#f97316'),
-  '3': generateSampleImage('健身达人', '#10b981'),
+  '1': 'assets/demo_original.jpg',
+  '2': 'assets/demo_xhs_handdrawn.jpg',
+  '3': 'assets/demo_xhs_sticker.jpg',
 };
 
 let currentPlatform = 'xiaohongshu';
@@ -347,12 +347,22 @@ document.getElementById('exampleGrid').addEventListener('click', (e) => {
   if (!item) return;
   const key = item.dataset.example;
   if (sampleImages[key]) {
-    uploadedImage = sampleImages[key];
-    updatePreview();
-    updateUploadBtn();
-    updateGenerateBtn();
+    // Load image from URL to get base64 for preview
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      uploadedImage = canvas.toDataURL('image/jpeg', 0.9);
+      updatePreview();
+      updateUploadBtn();
+      updateGenerateBtn();
+    };
+    img.src = sampleImages[key];
     document.getElementById('titleInput').placeholder = {
-      '1': '如：职场穿搭公式', '2': '如：3分钟懒人早餐', '3': '如：居家徒手燃脂'
+      '1': '如：嗅觉恢复训练法', '2': '如：每天3分钟见效', '3': '如：亲测有效的小技巧'
     }[key];
   }
 });

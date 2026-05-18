@@ -109,9 +109,9 @@ header .badge { font-size:.75rem; color:var(--sub); background:rgba(255,255,255,
     <div class="examples">
       <h4>💡 或使用示例图片快速体验</h4>
       <div class="example-grid" id="exampleGrid">
-        <div class="example-item" data-example="1" style="background:url(assets/demo_original.jpg) center/cover;"></div>
-        <div class="example-item" data-example="2" style="background:url(assets/demo_xhs_handdrawn.jpg) center/cover;"></div>
-        <div class="example-item" data-example="3" style="background:url(assets/demo_xhs_sticker.jpg) center/cover;"></div>
+        <div class="example-item" data-example="1" style="background:url(assets/demo_person_ai.jpg) center/cover;"></div>
+        <div class="example-item" data-example="2" style="background:url(assets/demo_cover_1.jpg) center/cover;"></div>
+        <div class="example-item" data-example="3" style="background:url(assets/demo_cover_2.jpg) center/cover;"></div>
       </div>
     </div>
 
@@ -241,9 +241,9 @@ function generateSampleImage(label, bgColor) {
 }
 
 const sampleImages = {
-  '1': 'assets/demo_original.jpg',
-  '2': 'assets/demo_xhs_handdrawn.jpg',
-  '3': 'assets/demo_xhs_sticker.jpg',
+  '1': 'assets/demo_person_ai.jpg',
+  '2': 'assets/demo_cover_1.jpg',
+  '3': 'assets/demo_cover_2.jpg',
 };
 
 let currentPlatform = 'xiaohongshu';
@@ -362,7 +362,7 @@ document.getElementById('exampleGrid').addEventListener('click', (e) => {
     };
     img.src = sampleImages[key];
     document.getElementById('titleInput').placeholder = {
-      '1': '如：嗅觉恢复训练法', '2': '如：每天3分钟见效', '3': '如：亲测有效的小技巧'
+      '1': '如：放松减压小技巧', '2': '如：每天3分钟', '3': '如：亲测有效'
     }[key];
   }
 });

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Cover Lab — AI全平台封面生成器 | 小红书·抖音·YouTube·IG</title>
+<meta name="description" content="上传一张照片，AI瞬间生成小红书/TikTok/YouTube/Instagram专业封面。24+风格，无需API Key，4K分辨率。">
+<style>
+:root { --purple: #7c3aed; --pink: #ec4899; --orange: #f97316; --blue: #3b82f6; --green: #10b981; }
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif; background: #0a0a0a; color: #f5f5f5; line-height: 1.6; }
+::selection { background: var(--purple); color: #fff; }
+
+/* ─── NAV ─── */
+nav { position: fixed; top:0; width:100%; z-index:100; background: rgba(10,10,10,.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,.06); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+nav .logo { font-size: 1.3rem; font-weight: 800; background: linear-gradient(135deg, var(--purple), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+nav .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+nav .nav-links a { color: #999; text-decoration: none; font-size: .9rem; transition: color .2s; }
+nav .nav-links a:hover { color: #fff; }
+
+/* ─── HERO ─── */
+.hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 6rem 2rem 4rem; position: relative; overflow: hidden; }
+.hero::before { content:''; position: absolute; inset:0; background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(124,58,237,.15) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 70% 60%, rgba(236,72,153,.1) 0%, transparent 50%); }
+.hero-badge { display: inline-block; padding: 6px 16px; background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.3); border-radius: 50px; font-size: .85rem; color: #a78bfa; margin-bottom: 1.5rem; position: relative; }
+.hero h1 { font-size: clamp(2.8rem, 7vw, 6rem); font-weight: 800; background: linear-gradient(135deg, #a78bfa 0%, #c084fc 30%, #f472b6 70%, #fb923c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.05; margin-bottom: 1rem; position: relative; letter-spacing: -.02em; }
+.hero .sub { font-size: clamp(1rem, 2vw, 1.3rem); color: #888; max-width: 600px; margin-bottom: 2.5rem; position: relative; }
+.hero .cta { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; position: relative; }
+.hero .users { margin-top: 2rem; color: #555; font-size: .85rem; position: relative; }
+.hero .users strong { color: #a78bfa; }
+
+.btn { padding: 14px 36px; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: all .3s; text-decoration: none; display: inline-flex; align-items: center; gap: .5rem; }
+.btn-primary { background: linear-gradient(135deg, var(--purple), #8b5cf6); color: #fff; box-shadow: 0 4px 30px rgba(124,58,237,.35); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(124,58,237,.5); }
+.btn-outline { border: 2px solid rgba(255,255,255,.15); color: #fff; background: transparent; }
+.btn-outline:hover { border-color: var(--purple); background: rgba(124,58,237,.08); }
+
+/* ─── SECTIONS ─── */
+section { padding: 5rem 2rem; }
+.section-label { text-align: center; font-size: .85rem; text-transform: uppercase; letter-spacing: .15em; color: var(--purple); margin-bottom: .8rem; font-weight: 700; }
+.section-title { text-align: center; font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; margin-bottom: 1rem; letter-spacing: -.02em; }
+.section-sub { text-align: center; color: #777; font-size: 1.05rem; max-width: 600px; margin: 0 auto 3rem; }
+
+/* ─── CONTRAST TABLE ─── */
+.contrast { max-width: 800px; margin: 0 auto; background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.05); border-radius: 20px; overflow: hidden; }
+.contrast table { width: 100%; border-collapse: collapse; }
+.contrast th, .contrast td { padding: 1rem 1.5rem; text-align: left; }
+.contrast th { background: rgba(124,58,237,.1); color: var(--purple); font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; }
+.contrast td { border-bottom: 1px solid rgba(255,255,255,.04); font-size: .95rem; }
+.contrast .win { color: var(--green); font-weight: 700; }
+.contrast .us { background: rgba(124,58,237,.04); }
+.contrast tr:last-child td { border: none; }
+
+/* ─── PLATFORMS ─── */
+.platforms { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; max-width: 1100px; margin: 0 auto; }
+.platform-card { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.05); border-radius: 20px; padding: 2rem; text-align: center; transition: all .4s cubic-bezier(0.25, 0.46, 0.45, 0.94); cursor: default; }
+.platform-card:hover { transform: translateY(-6px); border-color: rgba(124,58,237,.25); background: rgba(124,58,237,.04); box-shadow: 0 20px 40px rgba(0,0,0,.3); }
+.platform-card .icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+.platform-card h3 { font-size: 1.2rem; margin-bottom: .4rem; }
+.platform-card .ratio { color: var(--purple); font-size: .9rem; font-weight: 600; margin-bottom: .5rem; }
+.platform-card .count { color: #666; font-size: .85rem; }
+
+/* ─── TAG FILTER ─── */
+.tag-filter { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2rem; max-width: 800px; margin-left: auto; margin-right: auto; }
+.tag { padding: 6px 18px; border-radius: 50px; font-size: .85rem; cursor: pointer; border: 1px solid rgba(255,255,255,.1); background: transparent; color: #888; transition: all .25s; }
+.tag:hover { border-color: var(--purple); color: #fff; }
+.tag.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+.tag[data-platform="xiaohongshu"].active { background: #ff2442; border-color: #ff2442; }
+.tag[data-platform="tiktok"].active { background: #00f2ea; border-color: #00f2ea; color: #000; }
+.tag[data-platform="youtube"].active { background: #ff0000; border-color: #ff0000; }
+.tag[data-platform="instagram"].active { background: #e1306c; border-color: #e1306c; }
+
+/* ─── STYLE GRID ─── */
+.styles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.2rem; max-width: 1200px; margin: 0 auto; }
+.style-card { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.05); border-radius: 16px; padding: 1.5rem; transition: all .3s; position: relative; }
+.style-card:hover { border-color: rgba(124,58,237,.2); background: rgba(124,58,237,.03); }
+.style-card .style-emoji { font-size: 1.8rem; margin-bottom: .5rem; display: block; }
+.style-card .style-name { font-size: 1.05rem; font-weight: 700; margin-bottom: .4rem; }
+.style-card .style-desc { color: #777; font-size: .88rem; line-height: 1.5; margin-bottom: .8rem; }
+.style-card .style-tag { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: .72rem; font-weight: 600; }
+.tag-xhs { background: rgba(255,36,66,.15); color: #ff2442; }
+.tag-tiktok { background: rgba(0,242,234,.15); color: #00f2ea; }
+.tag-youtube { background: rgba(255,0,0,.15); color: #ff4444; }
+.tag-ig { background: rgba(225,48,108,.15); color: #e1306c; }
+.style-card.hidden { display: none; }
+
+/* ─── HOW IT WORKS ─── */
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; max-width: 1000px; margin: 0 auto; }
+.step { text-align: center; }
+.step .step-num { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; margin: 0 auto 1rem; }
+.step h4 { margin-bottom: .5rem; }
+.step p { color: #777; font-size: .9rem; }
+
+/* ─── PRICING ─── */
+.pricing { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 1000px; margin: 0 auto; }
+.plan { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 24px; padding: 2.5rem; text-align: center; transition: all .3s; position: relative; }
+.plan:hover { border-color: rgba(255,255,255,.1); }
+.plan.popular { border-color: var(--purple); background: rgba(124,58,237,.06); }
+.plan.popular::before { content:'最受欢迎'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--purple); padding: 5px 22px; border-radius: 20px; font-size: .8rem; font-weight: 700; }
+.plan h3 { font-size: 1.3rem; margin-bottom: .3rem; }
+.plan .sub-plan { color: #666; font-size: .85rem; margin-bottom: 1rem; }
+.plan .price { font-size: 3rem; font-weight: 800; margin: .5rem 0; }
+.plan .price span { font-size: .9rem; color: #888; font-weight: 400; }
+.plan ul { list-style: none; text-align: left; margin: 1.5rem 0; }
+.plan ul li { padding: .5rem 0; color: #aaa; font-size: .9rem; }
+.plan ul li::before { content:'✓ '; color: var(--purple); font-weight: 700; }
+.plan .btn { width: 100%; justify-content: center; margin-top: .5rem; }
+
+/* ─── DEMO SHOWCASE ─── */
+.demo-showcase { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; max-width: 1000px; margin: 0 auto; }
+.demo-showcase img { width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,.06); transition: transform .3s; }
+.demo-showcase img:hover { transform: scale(1.05); z-index: 2; }
+
+/* ─── FOOTER ─── */
+footer { text-align: center; padding: 4rem 2rem; color: #444; font-size: .9rem; border-top: 1px solid rgba(255,255,255,.04); }
+footer a { color: #a78bfa; text-decoration: none; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width:768px) {
+  nav { padding: 0 1rem; }
+  nav .nav-links { display: none; }
+  .demo-showcase { grid-template-columns: repeat(2, 1fr); }
+  .contrast { overflow-x: auto; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">🎬 Social Cover Lab</div>
+  <ul class="nav-links">
+    <li><a href="#features">功能</a></li>
+    <li><a href="#styles">风格</a></li>
+    <li><a href="#demo">案例</a></li>
+    <li><a href="#pricing">定价</a></li>
+  </ul>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-badge">🚀 开源 & 商业可用</div>
+  <h1>AI 全平台<br>封面生成器</h1>
+  <p class="sub">上传一张照片 → 选平台和风格 → AI 10秒出图。<br>小红书 · TikTok · YouTube · Instagram 全通吃。</p>
+  <div class="cta">
+    <a href="#pricing" class="btn btn-primary">🎬 开始生成</a>
+    <a href="#features" class="btn btn-outline">🆚 比 xhs-cover 强在哪</a>
+  </div>
+  <p class="users">✨ <strong>37</strong> 种风格 · <strong>4</strong> 大平台 · <strong>零配置</strong> 开箱即用</p>
+</section>
+
+<!-- ═══ FEATURES / CONTRAST ═══ -->
+<section id="features">
+  <div class="section-label">为什么选我们</div>
+  <h2 class="section-title">不只是「又一个小红书工具」</h2>
+  <p class="section-sub">xhs-cover 是个好产品，但平台限制 + 需自配 API Key 让很多人劝退。Social Cover Lab 补齐了这两块短板。</p>
+  
+  <div class="contrast">
+    <table>
+      <thead><tr><th>对比维度</th><th class="us">Social Cover Lab 🎬</th><th>xhs-cover (VI)</th></tr></thead>
+      <tbody>
+        <tr><td>支持平台</td><td class="win us">4 个平台</td><td>仅小红书</td></tr>
+        <tr><td>风格数量</td><td class="win us">24+ 种</td><td>18 种</td></tr>
+        <tr><td>API Key</td><td class="win us">❌ 不需要</td><td>⚠️ 需自配 Gemini</td></tr>
+        <tr><td>比例支持</td><td class="win us">3:4 / 9:16 / 16:9 / 1:1</td><td>仅 3:4</td></tr>
+        <tr><td>风格学习</td><td class="win us">✅ 上传参考图提取</td><td>✅ 有</td></tr>
+        <tr><td>分辨率</td><td class="win us">最高 4K</td><td>4K</td></tr>
+        <tr><td>使用门槛</td><td class="win us">零配置开箱即用</td><td>需科学上网+配Key</td></tr>
+        <tr><td>商业授权</td><td class="win us">✅ Pro 版含</td><td>开源 MIT</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══ HOW IT WORKS ═══ -->
+<section style="background:rgba(255,255,255,.01);">
+  <div class="section-label">三步出图</div>
+  <h2 class="section-title">比 P 图快 100 倍</h2>
+  <p class="section-sub">传统方式做一张封面 15-30 分钟。Social Cover Lab 只要 10 秒。</p>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><h4>上传照片</h4><p>拖拽一张人像照片，支持 JPG/PNG/HEIC</p></div>
+    <div class="step"><div class="step-num">2</div><h4>选平台+风格</h4><p>小红书/TikTok/YouTube/IG，24种风格任选</p></div>
+    <div class="step"><div class="step-num">3</div><h4>下载用起来</h4><p>4K 高清封面直接下载，发布即用</p></div>
+  </div>
+</section>
+
+<!-- ═══ PLATFORM CARDS ═══ -->
+<section>
+  <div class="section-label">全平台覆盖</div>
+  <h2 class="section-title">一个工具搞定所有社交平台</h2>
+  <p class="section-sub">不用再为不同平台反复调整尺寸和比例。我们自动适配。</p>
+  
+  <div class="platforms">
+    <div class="platform-card"><span class="icon">📕</span><h3>小红书</h3><p class="ratio">3:4 竖版</p><p class="count">18 种专属风格</p></div>
+    <div class="platform-card"><span class="icon">🎵</span><h3>TikTok / 抖音</h3><p class="ratio">9:16 全屏</p><p class="count">7 种爆款风格</p></div>
+    <div class="platform-card"><span class="icon">▶️</span><h3>YouTube</h3><p class="ratio">16:9 横版</p><p class="count">6 种高CTR风格</p></div>
+    <div class="platform-card"><span class="icon">📷</span><h3>Instagram</h3><p class="ratio">1:1 方形</p><p class="count">6 种美学风格</p></div>
+  </div>
+</section>
+
+<!-- ═══ STYLE GALLERY ═══ -->
+<section id="styles" style="background:rgba(255,255,255,.01);">
+  <div class="section-label">风格画廊</div>
+  <h2 class="section-title">24+ 种风格 · 一键切换</h2>
+  <p class="section-sub">按平台筛选，找到最适合你的封面风格。</p>
+  
+  <div class="tag-filter" id="tagFilter">
+    <button class="tag active" data-platform="all">🎨 全部</button>
+    <button class="tag" data-platform="xiaohongshu">📕 小红书</button>
+    <button class="tag" data-platform="tiktok">🎵 TikTok</button>
+    <button class="tag" data-platform="youtube">▶️ YouTube</button>
+    <button class="tag" data-platform="instagram">📷 Instagram</button>
+  </div>
+  
+  <div class="styles-grid" id="stylesGrid">
+    <div class="style-card" data-platform="xiaohongshu"><span class="style-emoji">🎨</span><div class="style-name">手绘边框</div><div class="style-desc">黄色粗犷手绘描边，综艺活力感，爆款常客</div><span class="style-tag tag-xhs">小红书</span></div>
+    <div class="style-card" data-platform="xiaohongshu"><span class="style-emoji">🔤</span><div class="style-name">背景大字</div><div class="style-desc">巨型橙色文字做背景层，杂志排版风格</div><span class="style-tag tag-xhs">小红书</span></div>
+    <div class="style-card" data-platform="xiaohongshu"><span class="style-emoji">⚡</span><div class="style-name">贴纸活力</div><div class="style-desc">人物抠图贴纸效果，闪电星星爱心装饰</div><span class="style-tag tag-xhs">小红书</span></div>
+    <div class="style-card" data-platform="xiaohongshu"><span class="style-emoji">🏠</span><div class="style-name">居家励志</div><div class="style-desc">暖黄手写体大字+虚线圆环，治愈温暖</div><span class="style-tag tag-xhs">小红书</span></div>
+    <div class="style-card" data-platform="xiaohongshu"><span class="style-emoji">📚</span><div class="style-name">书房知性</div><div class="style-desc">奶油色手写字+蓝色问号，知识型干货</div><span class="style-tag tag-xhs">小红书</span></div>
+    <div class="style-card" data-platform="xiaohongshu"><span class="style-emoji">💚</span><div class="style-name">霓虹撞色</div><div class="style-desc">荧光粉绿大胆撞色，Y2K潮流视觉冲击</div><span class="style-tag tag-xhs">小红书</span></div>
+    <div class="style-card" data-platform="xiaohongshu"><span class="style-emoji">📐</span><div class="style-name">分屏标签</div><div class="style-desc">上图下色块，黄蓝分区+标签设计</div><span class="style-tag tag-xhs">小红书</span></div>
+    <div class="style-card" data-platform="xiaohongshu"><span class="style-emoji">⭕</span><div class="style-name">虚线装饰</div><div class="style-desc">白字橙副标，虚线半圆环绕人物</div><span class="style-tag tag-xhs">小红书</span></div>
+    
+    <div class="style-card" data-platform="tiktok"><span class="style-emoji">🔥</span><div class="style-name">热点冲锋</div><div class="style-desc">红橙渐变+大字报，TikTok爆款封面</div><span class="style-tag tag-tiktok">TikTok</span></div>
+    <div class="style-card" data-platform="tiktok"><span class="style-emoji">⚡</span><div class="style-name">前3秒钩子</div><div class="style-desc">巨大问号+消息气泡，好奇心驱动</div><span class="style-tag tag-tiktok">TikTok</span></div>
+    <div class="style-card" data-platform="tiktok"><span class="style-emoji">🎭</span><div class="style-name">文字揭秘</div><div class="style-desc">文字逐步放大+悬念设计，揭秘/教程类</div><span class="style-tag tag-tiktok">TikTok</span></div>
+    <div class="style-card" data-platform="tiktok"><span class="style-emoji">🏅</span><div class="style-name">挑战徽章</div><div class="style-desc">游戏化徽章+进度条，挑战/打卡类</div><span class="style-tag tag-tiktok">TikTok</span></div>
+    <div class="style-card" data-platform="tiktok"><span class="style-emoji">💊</span><div class="style-name">健康科普</div><div class="style-desc">蓝白医疗风+十字图标，专业可信</div><span class="style-tag tag-tiktok">TikTok</span></div>
+    <div class="style-card" data-platform="tiktok"><span class="style-emoji">🎤</span><div class="style-name">脱口秀风</div><div class="style-desc">综艺花字+弹幕飘过，搞笑轻松</div><span class="style-tag tag-tiktok">TikTok</span></div>
+    <div class="style-card" data-platform="tiktok"><span class="style-emoji">💰</span><div class="style-name">理财干货</div><div class="style-desc">金色数字+上升箭头，财经搞钱类</div><span class="style-tag tag-tiktok">TikTok</span></div>
+    
+    <div class="style-card" data-platform="youtube"><span class="style-emoji">😱</span><div class="style-name">表情反应</div><div class="style-desc">夸张表情+黑色描边大字，高CTR</div><span class="style-tag tag-youtube">YouTube</span></div>
+    <div class="style-card" data-platform="youtube"><span class="style-emoji">⚔️</span><div class="style-name">对比对决</div><div class="style-desc">VS大Logo+左右分屏，评测封面</div><span class="style-tag tag-youtube">YouTube</span></div>
+    <div class="style-card" data-platform="youtube"><span class="style-emoji">📋</span><div class="style-name">教程步骤</div><div class="style-desc">①②③编号+箭头引导，教程/How-to</div><span class="style-tag tag-youtube">YouTube</span></div>
+    <div class="style-card" data-platform="youtube"><span class="style-emoji">🎯</span><div class="style-name">箭头点击</div><div class="style-desc">大红箭头+圈出重点，引导点击</div><span class="style-tag tag-youtube">YouTube</span></div>
+    <div class="style-card" data-platform="youtube"><span class="style-emoji">🏆</span><div class="style-name">结果展示</div><div class="style-desc">Before/After+大百分比数字</div><span class="style-tag tag-youtube">YouTube</span></div>
+    <div class="style-card" data-platform="youtube"><span class="style-emoji">🎙️</span><div class="style-name">播客风格</div><div class="style-desc">极简文字+音波装饰，Podcast封面</div><span class="style-tag tag-youtube">YouTube</span></div>
+    
+    <div class="style-card" data-platform="instagram"><span class="style-emoji">✨</span><div class="style-name">极简美学</div><div class="style-desc">大留白+衬线字体，Aesop式高级感</div><span class="style-tag tag-ig">Instagram</span></div>
+    <div class="style-card" data-platform="instagram"><span class="style-emoji">📸</span><div class="style-name">轮播预告</div><div class="style-desc">网格预览+页码，引导滑动carousel</div><span class="style-tag tag-ig">Instagram</span></div>
+    <div class="style-card" data-platform="instagram"><span class="style-emoji">💬</span><div class="style-name">金句叠加</div><div class="style-desc">大字覆盖+暗角，名言/观点卡片</div><span class="style-tag tag-ig">Instagram</span></div>
+    <div class="style-card" data-platform="instagram"><span class="style-emoji">📰</span><div class="style-name">生活杂志</div><div class="style-desc">刊头+衬线字体，Vogue式封面</div><span class="style-tag tag-ig">Instagram</span></div>
+    <div class="style-card" data-platform="instagram"><span class="style-emoji">🎨</span><div class="style-name">色块拼接</div><div class="style-desc">蒙德里安构图+大胆撞色</div><span class="style-tag tag-ig">Instagram</span></div>
+    <div class="style-card" data-platform="instagram"><span class="style-emoji">🎂</span><div class="style-name">日常记录</div><div class="style-desc">拍立得相纸边框+手写体，温暖日记</div><span class="style-tag tag-ig">Instagram</span></div>
+  </div>
+</section>
+
+<!-- ═══ DEMO ═══ -->
+<section id="demo">
+  <div class="section-label">任意主题 · 一键出图</div>
+  <h2 class="section-title">不挑内容，什么都能做封面</h2>
+  <p class="section-sub">美妆、职场、美食、旅行、科技、健身、母婴、财经……你做什么赛道，我们就有什么封面。</p>
+  <div class="demo-showcase">
+    <img src="https://placehold.co/240x320/1a1a2e/fff?text=美妆教程" alt="美妆封面" loading="lazy">
+    <img src="https://placehold.co/240x320/1a1a2e/fff?text=职场干货" alt="职场封面" loading="lazy">
+    <img src="https://placehold.co/240x320/1a1a2e/fff?text=旅行vlog" alt="旅行封面" loading="lazy">
+    <img src="https://placehold.co/240x320/1a1a2e/fff?text=健身打卡" alt="健身封面" loading="lazy">
+  </div>
+</section>
+
+<!-- ═══ PRICING ═══ -->
+<section id="pricing" style="background:rgba(255,255,255,.01);">
+  <div class="section-label">定价</div>
+  <h2 class="section-title">免费开始，按需升级</h2>
+  <p class="section-sub">个人创作者免费够用。专业团队解锁全部功能。</p>
+  
+  <div class="pricing">
+    <div class="plan">
+      <h3>🆓 Free</h3>
+      <div class="sub-plan">尝鲜体验</div>
+      <div class="price">$0<span>/月</span></div>
+      <ul>
+        <li>1 个平台（小红书）</li>
+        <li>8 种核心风格</li>
+        <li>2K 分辨率</li>
+        <li>10 次/天</li>
+      </ul>
+      <a href="#" class="btn btn-outline">免费开始</a>
+    </div>
+    
+    <div class="plan popular">
+      <h3>⭐ Pro</h3>
+      <div class="sub-plan">创作者首选</div>
+      <div class="price">$12<span>/月</span></div>
+      <ul>
+        <li>全平台 4 个</li>
+        <li>24+ 种风格</li>
+        <li>4K 分辨率</li>
+        <li>无限次生成</li>
+        <li>风格学习功能</li>
+        <li>商业授权无水印</li>
+      </ul>
+      <a href="#" class="btn btn-primary">立即订阅</a>
+    </div>
+    
+    <div class="plan">
+      <h3>🏢 Agency</h3>
+      <div class="sub-plan">团队 & B2B</div>
+      <div class="price">$49<span>/月</span></div>
+      <ul>
+        <li>Pro 全部功能</li>
+        <li>5 人团队协作</li>
+        <li>API 接入</li>
+        <li>批量生成</li>
+        <li>白标选项</li>
+        <li>优先支持</li>
+      </ul>
+      <a href="#" class="btn btn-outline">联系销售</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <p>🎬 Social Cover Lab · AI-Powered · Built with ❤️ for creators</p>
+  <p style="margin-top:.5rem;">© 2026 Social Cover Lab. Open source under MIT. Pro features available.</p>
+</footer>
+
+<script>
+// Tag filter
+document.getElementById('tagFilter').addEventListener('click', (e) => {
+  if (!e.target.classList.contains('tag')) return;
+  document.querySelectorAll('#tagFilter .tag').forEach(t => t.classList.remove('active'));
+  e.target.classList.add('active');
+  const platform = e.target.dataset.platform;
+  document.querySelectorAll('#stylesGrid .style-card').forEach(card => {
+    if (platform === 'all' || card.dataset.platform === platform) {
+      card.classList.remove('hidden');
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Cover Lab - 在线生成器 Demo</title>
+<style>
+:root { --bg: #0a0a0a; --card: #141414; --border: #1f1f1f; --purple: #7c3aed; --text: #f5f5f5; --sub: #888; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 380px; background: var(--card); border-right: 1px solid var(--border); padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto; }
+.main { flex:1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; position: relative; }
+.main .preview-area { width: 100%; max-width: 600px; aspect-ratio: 3/4; background: var(--card); border: 2px dashed var(--border); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #333; font-size: 1.2rem; transition: all .3s; position: relative; overflow: hidden; }
+.main .preview-area.has-image { border-color: var(--purple); border-style: solid; }
+.main .preview-area img { width: 100%; height: 100%; object-fit: contain; }
+.main .preview-area .overlay-text { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); color: #fff; font-size: 2rem; font-weight: 800; text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,.8); pointer-events: none; white-space: pre-line; }
+.main .preview-area .overlay-sub { position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%); color: #ffd700; font-size: 1rem; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,.8); }
+
+.logo-small { font-size: 1.1rem; font-weight: 800; background: linear-gradient(135deg, var(--purple), #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+.form-group { display: flex; flex-direction: column; gap: .4rem; }
+.form-group label { font-size: .8rem; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: .05em; }
+.form-group input, .form-group select, .form-group textarea { padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: .95rem; font-family: inherit; transition: border-color .2s; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--purple); }
+.form-group textarea { resize: vertical; min-height: 60px; }
+
+.upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 2rem 1rem; text-align: center; cursor: pointer; transition: all .2s; background: rgba(255,255,255,.01); }
+.upload-zone:hover { border-color: var(--purple); background: rgba(124,58,237,.04); }
+.upload-zone .upload-icon { font-size: 2rem; margin-bottom: .5rem; }
+.upload-zone p { color: var(--sub); font-size: .85rem; }
+.upload-zone input[type=file] { display: none; }
+
+.platform-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .4rem; }
+.platform-tab { padding: 10px 0; text-align: center; border-radius: 10px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--sub); font-size: .8rem; transition: all .2s; }
+.platform-tab:hover { border-color: var(--purple); }
+.platform-tab.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+.platform-tab .pt-icon { font-size: 1.2rem; display: block; margin-bottom: 2px; }
+
+.style-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; max-height: 250px; overflow-y: auto; }
+.style-option { padding: 10px; border-radius: 10px; cursor: pointer; border: 1px solid var(--border); text-align: center; font-size: .8rem; transition: all .2s; background: transparent; color: var(--sub); }
+.style-option:hover { border-color: var(--purple); }
+.style-option.active { border-color: var(--purple); background: rgba(124,58,237,.1); color: var(--text); }
+.style-option .so-emoji { font-size: 1.2rem; display: block; }
+
+.btn-generate { padding: 14px; border-radius: 12px; font-size: 1rem; font-weight: 700; border: none; cursor: pointer; background: linear-gradient(135deg, var(--purple), #8b5cf6); color: #fff; width: 100%; transition: all .2s; }
+.btn-generate:hover { box-shadow: 0 4px 20px rgba(124,58,237,.4); }
+.btn-generate:disabled { opacity: .5; cursor: not-allowed; }
+.btn-generate .spinner { display:none; width:18px; height:18px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation: spin .6s linear infinite; margin-right:8px; }
+.btn-generate.loading .spinner { display:inline-block; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.status { padding: 10px 14px; border-radius: 10px; font-size: .85rem; text-align: center; }
+.status.info { background: rgba(59,130,246,.1); color: #60a5fa; }
+.status.success { background: rgba(16,185,129,.1); color: #34d399; }
+.status.error { background: rgba(239,68,68,.1); color: #f87171; }
+
+.result-area { margin-top: 1rem; }
+.result-area img { width: 100%; border-radius: 12px; border: 1px solid var(--border); }
+
+@media (max-width:768px) {
+  .app { flex-direction: column; }
+  .sidebar { width: 100%; max-height: none; }
+  .main { padding: 1rem; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo-small">🎬 Social Cover Lab</div>
+    
+    <div class="form-group">
+      <label>📸 上传人像照片</label>
+      <div class="upload-zone" id="uploadZone">
+        <div class="upload-icon">📷</div>
+        <p>点击或拖拽上传<br><small>JPG / PNG / HEIC</small></p>
+        <input type="file" id="fileInput" accept="image/*">
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label>✏️ 主标题</label>
+      <input type="text" id="titleInput" placeholder="例如：嗅觉恢复训练法" maxlength="30">
+    </div>
+    
+    <div class="form-group">
+      <label>📝 副标题（可选）</label>
+      <input type="text" id="subtitleInput" placeholder="例如：每天3分钟见效" maxlength="30">
+    </div>
+    
+    <div class="form-group">
+      <label>📱 目标平台</label>
+      <div class="platform-tabs" id="platformTabs">
+        <div class="platform-tab active" data-platform="xiaohongshu"><span class="pt-icon">📕</span>小红书</div>
+        <div class="platform-tab" data-platform="tiktok"><span class="pt-icon">🎵</span>TikTok</div>
+        <div class="platform-tab" data-platform="youtube"><span class="pt-icon">▶️</span>YouTube</div>
+        <div class="platform-tab" data-platform="instagram"><span class="pt-icon">📷</span>IG</div>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label>🎨 风格</label>
+      <div class="style-list" id="styleList"></div>
+    </div>
+    
+    <button class="btn-generate" id="btnGenerate" disabled>
+      <span class="spinner"></span>
+      生成封面
+    </button>
+    
+    <div id="statusArea"></div>
+    <div class="result-area" id="resultArea"></div>
+  </aside>
+  
+  <main class="main">
+    <div class="preview-area" id="previewArea">
+      <div>👆 上传照片开始</div>
+    </div>
+  </main>
+</div>
+
+<script>
+// Styles data
+const stylesByPlatform = {
+  xiaohongshu: [
+    { id:'hand-drawn-border', emoji:'🎨', name:'手绘边框' },
+    { id:'background-big-text', emoji:'🔤', name:'背景大字' },
+    { id:'sticker-energy', emoji:'⚡', name:'贴纸活力' },
+    { id:'home-motivation', emoji:'🏠', name:'居家励志' },
+    { id:'study-room-intellectual', emoji:'📚', name:'书房知性' },
+    { id:'neon-contrast', emoji:'💚', name:'霓虹撞色' },
+    { id:'split-screen-tags', emoji:'📐', name:'分屏标签' },
+    { id:'dashed-decoration', emoji:'⭕', name:'虚线装饰' },
+  ],
+  tiktok: [
+    { id:'trending-fire', emoji:'🔥', name:'热点冲锋' },
+    { id:'hook-first-3s', emoji:'⚡', name:'前3秒钩子' },
+    { id:'text-reveal', emoji:'🎭', name:'文字揭秘' },
+    { id:'challenge-badge', emoji:'🏅', name:'挑战徽章' },
+    { id:'health-science', emoji:'💊', name:'健康科普' },
+    { id:'comedy-talk', emoji:'🎤', name:'脱口秀风' },
+  ],
+  youtube: [
+    { id:'reaction-face', emoji:'😱', name:'表情反应' },
+    { id:'vs-battle', emoji:'⚔️', name:'对比对决' },
+    { id:'tutorial-steps', emoji:'📋', name:'教程步骤' },
+    { id:'clickbait-arrow', emoji:'🎯', name:'箭头点击' },
+    { id:'results-showcase', emoji:'🏆', name:'结果展示' },
+    { id:'podcast-style', emoji:'🎙️', name:'播客风格' },
+  ],
+  instagram: [
+    { id:'aesthetic-minimal', emoji:'✨', name:'极简美学' },
+    { id:'carousel-teaser', emoji:'📸', name:'轮播预告' },
+    { id:'quote-overlay', emoji:'💬', name:'金句叠加' },
+    { id:'lifestyle-magazine', emoji:'📰', name:'生活杂志' },
+    { id:'color-block', emoji:'🎨', name:'色块拼接' },
+    { id:'daily-diary', emoji:'🎂', name:'日常记录' },
+  ]
+};
+
+let currentPlatform = 'xiaohongshu';
+let currentStyle = null;
+let uploadedImage = null;
+
+// Render styles
+function renderStyles() {
+  const list = document.getElementById('styleList');
+  const styles = stylesByPlatform[currentPlatform];
+  list.innerHTML = styles.map((s, i) => 
+    `<div class="style-option ${i===0?'active':''}" data-style="${s.id}">
+      <span class="so-emoji">${s.emoji}</span>${s.name}
+    </div>`
+  ).join('');
+  currentStyle = styles[0].id;
+  
+  list.querySelectorAll('.style-option').forEach(el => {
+    el.addEventListener('click', () => {
+      list.querySelectorAll('.style-option').forEach(e => e.classList.remove('active'));
+      el.classList.add('active');
+      currentStyle = el.dataset.style;
+    });
+  });
+}
+
+// Platform tabs
+document.getElementById('platformTabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.platform-tab');
+  if (!tab) return;
+  document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  currentPlatform = tab.dataset.platform;
+  renderStyles();
+  updatePreviewRatio();
+});
+
+function updatePreviewRatio() {
+  const ratios = { xiaohongshu:'3/4', tiktok:'9/16', youtube:'16/9', instagram:'1/1' };
+  document.getElementById('previewArea').style.aspectRatio = ratios[currentPlatform] || '3/4';
+}
+
+// Upload
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+uploadZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', handleFile);
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.style.borderColor = '#7c3aed'; });
+uploadZone.addEventListener('dragleave', () => uploadZone.style.borderColor = '' );
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.style.borderColor = '';
+  const file = e.dataTransfer.files[0];
+  if (file) loadImage(file);
+});
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (file) loadImage(file);
+}
+
+function loadImage(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    uploadedImage = reader.result;
+    const preview = document.getElementById('previewArea');
+    preview.innerHTML = `<img src="${uploadedImage}" alt="预览">`;
+    preview.classList.add('has-image');
+    updateGenerateBtn();
+  };
+  reader.readAsDataURL(file);
+}
+
+// Title input
+document.getElementById('titleInput').addEventListener('input', updateGenerateBtn);
+function updateGenerateBtn() {
+  document.getElementById('btnGenerate').disabled = !(uploadedImage && document.getElementById('titleInput').value.trim());
+}
+
+// Generate
+document.getElementById('btnGenerate').addEventListener('click', async () => {
+  const title = document.getElementById('titleInput').value.trim();
+  const subtitle = document.getElementById('subtitleInput').value.trim();
+  if (!title || !uploadedImage) return;
+  
+  const btn = document.getElementById('btnGenerate');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  
+  const statusArea = document.getElementById('statusArea');
+  statusArea.innerHTML = '<div class="status info">🎨 正在生成封面... 约需 10-20 秒</div>';
+  
+  // Simulate generation (in real deployment this calls the API)
+  await new Promise(r => setTimeout(r, 2000));
+  
+  // For demo: show a mock result
+  const resultArea = document.getElementById('resultArea');
+  resultArea.innerHTML = `
+    <p style="color:#34d399;margin-bottom:.5rem;font-size:.9rem;">✅ 生成成功！(${currentStyle})</p>
+    <div style="background:var(--card);border-radius:12px;padding:.5rem;">
+      <img src="${uploadedImage}" alt="生成结果" style="width:100%;border-radius:8px;">
+    </div>
+    <p style="color:#888;font-size:.75rem;margin-top:.5rem;">💡 Demo模式：真实版本会输出AI生成的封面图</p>
+  `;
+  
+  statusArea.innerHTML = '<div class="status success">✅ 封面已生成</div>';
+  btn.classList.remove('loading');
+  btn.disabled = false;
+});
+
+// Init
+renderStyles();
+</script>
+</body>
+</html>

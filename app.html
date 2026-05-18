@@ -3,92 +3,131 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Social Cover Lab - 在线生成器 Demo</title>
+<title>Social Cover Lab — AI 封面生成器在线 Demo</title>
 <style>
-:root { --bg: #0a0a0a; --card: #141414; --border: #1f1f1f; --purple: #7c3aed; --text: #f5f5f5; --sub: #888; }
+:root { --bg: #0a0a0a; --card: #141414; --border: #1f1f1f; --purple: #7c3aed; --pink: #ec4899; --text: #f5f5f5; --sub: #888; }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-.app { display: flex; min-height: 100vh; }
-.sidebar { width: 380px; background: var(--card); border-right: 1px solid var(--border); padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto; }
-.main { flex:1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; position: relative; }
-.main .preview-area { width: 100%; max-width: 600px; aspect-ratio: 3/4; background: var(--card); border: 2px dashed var(--border); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #333; font-size: 1.2rem; transition: all .3s; position: relative; overflow: hidden; }
-.main .preview-area.has-image { border-color: var(--purple); border-style: solid; }
-.main .preview-area img { width: 100%; height: 100%; object-fit: contain; }
-.main .preview-area .overlay-text { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); color: #fff; font-size: 2rem; font-weight: 800; text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,.8); pointer-events: none; white-space: pre-line; }
-.main .preview-area .overlay-sub { position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%); color: #ffd700; font-size: 1rem; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,.8); }
 
-.logo-small { font-size: 1.1rem; font-weight: 800; background: linear-gradient(135deg, var(--purple), #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+header { display:flex; align-items:center; justify-content:space-between; padding:1rem 2rem; border-bottom:1px solid var(--border); }
+header .logo { font-size:1.1rem; font-weight:800; background: linear-gradient(135deg,var(--purple),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+header .badge { font-size:.75rem; color:var(--sub); background:rgba(255,255,255,.05); padding:4px 12px; border-radius:20px; }
 
-.form-group { display: flex; flex-direction: column; gap: .4rem; }
-.form-group label { font-size: .8rem; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: .05em; }
-.form-group input, .form-group select, .form-group textarea { padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: .95rem; font-family: inherit; transition: border-color .2s; }
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--purple); }
-.form-group textarea { resize: vertical; min-height: 60px; }
+.app { display: flex; min-height: calc(100vh - 57px); }
+.sidebar { width: 400px; background: var(--card); border-right: 1px solid var(--border); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.2rem; overflow-y: auto; }
 
-.upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 2rem 1rem; text-align: center; cursor: pointer; transition: all .2s; background: rgba(255,255,255,.01); }
-.upload-zone:hover { border-color: var(--purple); background: rgba(124,58,237,.04); }
-.upload-zone .upload-icon { font-size: 2rem; margin-bottom: .5rem; }
-.upload-zone p { color: var(--sub); font-size: .85rem; }
-.upload-zone input[type=file] { display: none; }
+.main { flex:1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; gap: 1rem; }
 
+/* UPLOAD ZONE - big & obvious */
+.upload-container { position:relative; }
+.upload-btn { display:flex; align-items:center; justify-content:center; gap:.5rem; width:100%; padding:14px; border-radius:12px; font-size:1rem; font-weight:600; cursor:pointer; border:2px solid var(--purple); background:rgba(124,58,237,.1); color:var(--text); transition:all .2s; }
+.upload-btn:hover { background:rgba(124,58,237,.2); }
+.upload-btn .btn-icon { font-size:1.2rem; }
+.upload-btn.has-image { border-color:var(--pink); background:rgba(236,72,153,.1); }
+.upload-container input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; }
+
+/* FORM */
+.form-group { display: flex; flex-direction: column; gap: .3rem; }
+.form-group label { font-size: .75rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: .05em; }
+.form-group input, .form-group select { padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: .9rem; font-family: inherit; transition: border-color .2s; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: var(--purple); }
+
+/* PLATFORM TABS */
 .platform-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .4rem; }
-.platform-tab { padding: 10px 0; text-align: center; border-radius: 10px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--sub); font-size: .8rem; transition: all .2s; }
-.platform-tab:hover { border-color: var(--purple); }
+.platform-tab { padding: 10px 6px; text-align: center; border-radius: 10px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--sub); font-size: .75rem; transition: all .15s; user-select:none; }
+.platform-tab:hover { border-color: var(--purple); color:var(--text); }
 .platform-tab.active { background: var(--purple); border-color: var(--purple); color: #fff; }
-.platform-tab .pt-icon { font-size: 1.2rem; display: block; margin-bottom: 2px; }
+.platform-tab .pt-icon { font-size: 1.3rem; display: block; margin-bottom: 2px; }
 
-.style-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; max-height: 250px; overflow-y: auto; }
-.style-option { padding: 10px; border-radius: 10px; cursor: pointer; border: 1px solid var(--border); text-align: center; font-size: .8rem; transition: all .2s; background: transparent; color: var(--sub); }
-.style-option:hover { border-color: var(--purple); }
-.style-option.active { border-color: var(--purple); background: rgba(124,58,237,.1); color: var(--text); }
-.style-option .so-emoji { font-size: 1.2rem; display: block; }
+/* STYLE LIST */
+.style-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: .4rem; max-height: 220px; overflow-y: auto; }
+.style-option { padding: 10px 8px; border-radius: 10px; cursor: pointer; border: 1px solid var(--border); text-align: center; font-size: .78rem; transition: all .15s; background: transparent; color: var(--sub); user-select:none; }
+.style-option:hover { border-color: var(--purple); color:var(--text); }
+.style-option.active { border-color: var(--purple); background: rgba(124,58,237,.15); color: var(--text); }
+.style-option .so-emoji { font-size: 1.3rem; display: block; margin-bottom:1px; }
 
-.btn-generate { padding: 14px; border-radius: 12px; font-size: 1rem; font-weight: 700; border: none; cursor: pointer; background: linear-gradient(135deg, var(--purple), #8b5cf6); color: #fff; width: 100%; transition: all .2s; }
-.btn-generate:hover { box-shadow: 0 4px 20px rgba(124,58,237,.4); }
-.btn-generate:disabled { opacity: .5; cursor: not-allowed; }
-.btn-generate .spinner { display:none; width:18px; height:18px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation: spin .6s linear infinite; margin-right:8px; }
+/* GENERATE BTN */
+.btn-generate { padding: 14px; border-radius: 12px; font-size: 1rem; font-weight: 700; border: none; cursor: pointer; background: linear-gradient(135deg, var(--purple), var(--pink)); color: #fff; width: 100%; transition: all .2s; display:flex; align-items:center; justify-content:center; gap:.5rem; }
+.btn-generate:hover:not(:disabled) { box-shadow: 0 4px 24px rgba(124,58,237,.5); }
+.btn-generate:disabled { opacity: .4; cursor: not-allowed; }
+.spinner { display:none; width:18px; height:18px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; }
 .btn-generate.loading .spinner { display:inline-block; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
-.status { padding: 10px 14px; border-radius: 10px; font-size: .85rem; text-align: center; }
-.status.info { background: rgba(59,130,246,.1); color: #60a5fa; }
-.status.success { background: rgba(16,185,129,.1); color: #34d399; }
-.status.error { background: rgba(239,68,68,.1); color: #f87171; }
+/* PREVIEW */
+.preview-area { width:100%; max-width:500px; aspect-ratio:3/4; background:var(--card); border:2px dashed var(--border); border-radius:16px; display:flex; align-items:center; justify-content:center; color:#444; font-size:1rem; position:relative; overflow:hidden; transition:all .3s; }
+.preview-area.has-image { border-color:var(--purple); border-style:solid; }
+.preview-area img { width:100%; height:100%; object-fit:cover; }
+.preview-hint { color:var(--sub); font-size:.85rem; display:flex; align-items:center; gap:.5rem; }
 
-.result-area { margin-top: 1rem; }
-.result-area img { width: 100%; border-radius: 12px; border: 1px solid var(--border); }
+/* EXAMPLES SECTION */
+.examples { margin-top:.5rem; }
+.examples h4 { font-size:.75rem; color:var(--sub); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.5rem; }
+.example-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; }
+.example-item { aspect-ratio:3/4; border-radius:8px; background:var(--card); border:1px solid var(--border); cursor:pointer; overflow:hidden; position:relative; transition:all .15s; display:flex; align-items:center; justify-content:center; color:var(--border); font-size:1.5rem; }
+.example-item:hover { border-color:var(--purple); transform:scale(1.02); }
+
+/* STATUS */
+.status { padding: 8px 12px; border-radius: 8px; font-size: .8rem; text-align: center; }
+.status.info { background: rgba(59,130,246,.12); color: #60a5fa; }
+.status.success { background: rgba(16,185,129,.12); color: #34d399; }
+
+/* RESULT */
+.result-area { margin-top: .5rem; }
+.result-area img { width: 100%; border-radius: 10px; border: 1px solid var(--border); }
 
 @media (max-width:768px) {
   .app { flex-direction: column; }
-  .sidebar { width: 100%; max-height: none; }
+  .sidebar { width: 100%; }
   .main { padding: 1rem; }
 }
 </style>
 </head>
 <body>
+
+<header>
+  <div class="logo">🎬 Social Cover Lab</div>
+  <div class="badge">Demo · AI-Powered</div>
+</header>
+
 <div class="app">
   <aside class="sidebar">
-    <div class="logo-small">🎬 Social Cover Lab</div>
     
+    <!-- Upload -->
     <div class="form-group">
-      <label>📸 上传人像照片</label>
-      <div class="upload-zone" id="uploadZone">
-        <div class="upload-icon">📷</div>
-        <p>点击或拖拽上传<br><small>JPG / PNG / HEIC</small></p>
+      <label>📸 上传你的人像照片</label>
+      <div class="upload-container">
+        <div class="upload-btn" id="uploadBtn">
+          <span class="btn-icon">📷</span>
+          <span>点击这里选择照片</span>
+        </div>
         <input type="file" id="fileInput" accept="image/*">
       </div>
     </div>
-    
+
+    <!-- Quick Examples -->
+    <div class="examples">
+      <h4>💡 或使用示例图片快速体验</h4>
+      <div class="example-grid" id="exampleGrid">
+        <div class="example-item" data-example="1">👩‍💼</div>
+        <div class="example-item" data-example="2">🧑‍🍳</div>
+        <div class="example-item" data-example="3">🏃</div>
+      </div>
+    </div>
+
+    <!-- Title -->
     <div class="form-group">
       <label>✏️ 主标题</label>
-      <input type="text" id="titleInput" placeholder="例如：嗅觉恢复训练法" maxlength="30">
+      <input type="text" id="titleInput" placeholder="如：职场穿搭公式" maxlength="30">
     </div>
-    
+
+    <!-- Subtitle -->
     <div class="form-group">
       <label>📝 副标题（可选）</label>
-      <input type="text" id="subtitleInput" placeholder="例如：每天3分钟见效" maxlength="30">
+      <input type="text" id="subtitleInput" placeholder="如：3件单品搞定一周" maxlength="30">
     </div>
-    
+
+    <!-- Platform -->
     <div class="form-group">
       <label>📱 目标平台</label>
       <div class="platform-tabs" id="platformTabs">
@@ -98,30 +137,34 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-se
         <div class="platform-tab" data-platform="instagram"><span class="pt-icon">📷</span>IG</div>
       </div>
     </div>
-    
+
+    <!-- Style -->
     <div class="form-group">
       <label>🎨 风格</label>
       <div class="style-list" id="styleList"></div>
     </div>
-    
+
+    <!-- Generate -->
     <button class="btn-generate" id="btnGenerate" disabled>
       <span class="spinner"></span>
-      生成封面
+      🎬 生成封面
     </button>
-    
+
     <div id="statusArea"></div>
     <div class="result-area" id="resultArea"></div>
   </aside>
   
   <main class="main">
     <div class="preview-area" id="previewArea">
-      <div>👆 上传照片开始</div>
+      <div>📷<br>上传照片预览</div>
     </div>
+    <div class="preview-hint">⬅ 左侧上传照片并填写标题后点击生成</div>
   </main>
 </div>
 
+<!-- Sample cover images generated as base64 placeholders via canvas -->
 <script>
-// Styles data
+// --- Style Data ---
 const stylesByPlatform = {
   xiaohongshu: [
     { id:'hand-drawn-border', emoji:'🎨', name:'手绘边框' },
@@ -159,11 +202,55 @@ const stylesByPlatform = {
   ]
 };
 
+// Generate sample images using canvas
+function generateSampleImage(label, bgColor) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 300;
+  canvas.height = 400;
+  const ctx = canvas.getContext('2d');
+  
+  // Gradient background
+  const grad = ctx.createLinearGradient(0, 0, 300, 400);
+  grad.addColorStop(0, bgColor);
+  grad.addColorStop(1, '#1a1a2e');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 300, 400);
+  
+  // Decorative circle
+  ctx.beginPath();
+  ctx.arc(150, 160, 60, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,.1)';
+  ctx.fill();
+  
+  // Emoji
+  ctx.font = '50px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('📷', 150, 180);
+  
+  // Title text
+  ctx.font = 'bold 22px -apple-system, sans-serif';
+  ctx.fillStyle = '#fff';
+  ctx.fillText(label, 150, 350);
+  
+  // Subtitle
+  ctx.font = '14px -apple-system, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,.5)';
+  ctx.fillText('示例封面图', 150, 375);
+  
+  return canvas.toDataURL('image/jpeg', 0.8);
+}
+
+const sampleImages = {
+  '1': generateSampleImage('职场女性', '#7c3aed'),
+  '2': generateSampleImage('美食博主', '#f97316'),
+  '3': generateSampleImage('健身达人', '#10b981'),
+};
+
 let currentPlatform = 'xiaohongshu';
 let currentStyle = null;
 let uploadedImage = null;
 
-// Render styles
+// --- Render styles ---
 function renderStyles() {
   const list = document.getElementById('styleList');
   const styles = stylesByPlatform[currentPlatform];
@@ -183,7 +270,7 @@ function renderStyles() {
   });
 }
 
-// Platform tabs
+// --- Platform tabs ---
 document.getElementById('platformTabs').addEventListener('click', (e) => {
   const tab = e.target.closest('.platform-tab');
   if (!tab) return;
@@ -199,16 +286,21 @@ function updatePreviewRatio() {
   document.getElementById('previewArea').style.aspectRatio = ratios[currentPlatform] || '3/4';
 }
 
-// Upload
-const uploadZone = document.getElementById('uploadZone');
+// --- Upload ---
+const uploadBtn = document.getElementById('uploadBtn');
 const fileInput = document.getElementById('fileInput');
-uploadZone.addEventListener('click', () => fileInput.click());
+
+// Click on button → trigger file input
+uploadBtn.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', handleFile);
-uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.style.borderColor = '#7c3aed'; });
-uploadZone.addEventListener('dragleave', () => uploadZone.style.borderColor = '' );
-uploadZone.addEventListener('drop', e => {
+
+// Drag & drop on the button area
+uploadBtn.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); uploadBtn.style.borderColor = '#7c3aed'; });
+uploadBtn.addEventListener('dragleave', e => { e.preventDefault(); uploadBtn.style.borderColor = ''; });
+uploadBtn.addEventListener('drop', e => {
   e.preventDefault();
-  uploadZone.style.borderColor = '';
+  e.stopPropagation();
+  uploadBtn.style.borderColor = '';
   const file = e.dataTransfer.files[0];
   if (file) loadImage(file);
 });
@@ -222,21 +314,56 @@ function loadImage(file) {
   const reader = new FileReader();
   reader.onload = () => {
     uploadedImage = reader.result;
-    const preview = document.getElementById('previewArea');
-    preview.innerHTML = `<img src="${uploadedImage}" alt="预览">`;
-    preview.classList.add('has-image');
+    updatePreview();
+    updateUploadBtn();
     updateGenerateBtn();
   };
   reader.readAsDataURL(file);
 }
 
-// Title input
+function updatePreview() {
+  const preview = document.getElementById('previewArea');
+  if (uploadedImage) {
+    preview.innerHTML = `<img src="${uploadedImage}" alt="预览">`;
+    preview.classList.add('has-image');
+  }
+}
+
+function updateUploadBtn() {
+  const btn = document.getElementById('uploadBtn');
+  const span = btn.querySelector('span:last-child');
+  if (uploadedImage) {
+    span.textContent = '✅ 照片已上传（点击更换）';
+    btn.classList.add('has-image');
+  } else {
+    span.textContent = '点击这里选择照片';
+    btn.classList.remove('has-image');
+  }
+}
+
+// --- Example images ---
+document.getElementById('exampleGrid').addEventListener('click', (e) => {
+  const item = e.target.closest('.example-item');
+  if (!item) return;
+  const key = item.dataset.example;
+  if (sampleImages[key]) {
+    uploadedImage = sampleImages[key];
+    updatePreview();
+    updateUploadBtn();
+    updateGenerateBtn();
+    document.getElementById('titleInput').placeholder = {
+      '1': '如：职场穿搭公式', '2': '如：3分钟懒人早餐', '3': '如：居家徒手燃脂'
+    }[key];
+  }
+});
+
+// --- Title input ---
 document.getElementById('titleInput').addEventListener('input', updateGenerateBtn);
 function updateGenerateBtn() {
   document.getElementById('btnGenerate').disabled = !(uploadedImage && document.getElementById('titleInput').value.trim());
 }
 
-// Generate
+// --- Generate ---
 document.getElementById('btnGenerate').addEventListener('click', async () => {
   const title = document.getElementById('titleInput').value.trim();
   const subtitle = document.getElementById('subtitleInput').value.trim();
@@ -247,28 +374,70 @@ document.getElementById('btnGenerate').addEventListener('click', async () => {
   btn.disabled = true;
   
   const statusArea = document.getElementById('statusArea');
-  statusArea.innerHTML = '<div class="status info">🎨 正在生成封面... 约需 10-20 秒</div>';
+  statusArea.innerHTML = '<div class="status info">🎨 正在生成封面... 约需 15-30 秒</div>';
   
-  // Simulate generation (in real deployment this calls the API)
+  // In real version, this calls the API. For demo, simulate.
   await new Promise(r => setTimeout(r, 2000));
   
-  // For demo: show a mock result
+  const platformNames = { xiaohongshu:'小红书', tiktok:'TikTok', youtube:'YouTube', instagram:'Instagram' };
+  
   const resultArea = document.getElementById('resultArea');
   resultArea.innerHTML = `
-    <p style="color:#34d399;margin-bottom:.5rem;font-size:.9rem;">✅ 生成成功！(${currentStyle})</p>
-    <div style="background:var(--card);border-radius:12px;padding:.5rem;">
-      <img src="${uploadedImage}" alt="生成结果" style="width:100%;border-radius:8px;">
+    <p style="color:#34d399;margin-bottom:.5rem;font-size:.85rem;">✅ 生成成功 — ${platformNames[currentPlatform]} · ${document.querySelector('.style-option.active').textContent.trim()}</p>
+    <div style="background:var(--card);border-radius:10px;padding:.4rem;">
+      <canvas id="resultCanvas" width="300" height="${currentPlatform==='youtube'?169:currentPlatform==='instagram'?300:400}" style="width:100%;border-radius:8px;"></canvas>
     </div>
-    <p style="color:#888;font-size:.75rem;margin-top:.5rem;">💡 Demo模式：真实版本会输出AI生成的封面图</p>
+    <p style="color:#666;font-size:.7rem;margin-top:.4rem;">💡 Demo 模式 · 真实版可输出 4K 原图</p>
   `;
+  
+  // Draw a simulated result on canvas
+  setTimeout(() => {
+    const c = document.getElementById('resultCanvas');
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    const w = c.width, h = c.height;
+    
+    // Background gradient per platform
+    const colors = { xiaohongshu:['#ff6b6b','#ffd93d'], tiktok:['#00f2ea','#ff0050'], youtube:['#ff0000','#1a1a2e'], instagram:['#e1306c','#f77737'] };
+    const [c1,c2] = colors[currentPlatform] || colors.xiaohongshu;
+    const grad = ctx.createLinearGradient(0,0,w,h);
+    grad.addColorStop(0,c1);
+    grad.addColorStop(1,c2);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,w,h);
+    
+    // Title
+    ctx.font = `bold ${Math.floor(w/8)}px -apple-system, sans-serif`;
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0,0,0,.6)';
+    ctx.shadowBlur = 8;
+    const lines = title.length > 8 ? [title.slice(0,8), title.slice(8)] : [title];
+    lines.forEach((l,i) => ctx.fillText(l, w/2, h*0.25 + i*50));
+    
+    // Subtitle  
+    if (subtitle) {
+      ctx.font = `${Math.floor(w/14)}px -apple-system, sans-serif`;
+      ctx.fillStyle = '#ffd700';
+      ctx.fillText(subtitle, w/2, h*0.65);
+    }
+    
+    // Platform badge
+    ctx.font = 'bold 14px -apple-system, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,.5)';
+    ctx.fillText(platformNames[currentPlatform], w/2, h*0.9);
+    
+    ctx.shadowBlur = 0;
+  }, 100);
   
   statusArea.innerHTML = '<div class="status success">✅ 封面已生成</div>';
   btn.classList.remove('loading');
   btn.disabled = false;
 });
 
-// Init
+// --- Init ---
 renderStyles();
+updatePreviewRatio();
 </script>
 </body>
 </html>
